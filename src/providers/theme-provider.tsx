@@ -1,7 +1,7 @@
 'use client';
 
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -12,8 +12,15 @@ interface ThemeProviderProps {
 export function ThemeProvider({ 
   children, 
   defaultTheme = 'system',
-  storageKey = 'theme'
+  storageKey = 'taskflow-theme'
 }: ThemeProviderProps) {
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure theme is applied after mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <NextThemesProvider
       attribute="class"
@@ -21,6 +28,7 @@ export function ThemeProvider({
       enableSystem
       disableTransitionOnChange={false}
       storageKey={storageKey}
+      nonce={typeof window !== 'undefined' ? undefined : undefined}
     >
       {children}
     </NextThemesProvider>

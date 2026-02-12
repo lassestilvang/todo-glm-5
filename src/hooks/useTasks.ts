@@ -241,8 +241,14 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     // Store previous state for rollback
     const previousTask = tasks.find((t) => t.id === id);
     
+    // Convert UpdateTaskRequest to Partial<Task> for store
+    const storeUpdates = {
+      ...updates,
+      recurrence_type: updates.recurrence_type ?? undefined,
+    };
+    
     // Optimistic update
-    updateTask(id, updates);
+    updateTask(id, storeUpdates);
     
     try {
       const updatedTask = await updateTaskRequest(id, updates);

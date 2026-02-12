@@ -1,13 +1,13 @@
 /**
- * Database connection singleton using Bun's built-in SQLite
+ * Database connection singleton using better-sqlite3
  * 
  * This module provides a centralized database connection for the application.
  * The database file is stored at data/tasks.db
  * 
- * Uses bun:sqlite which is Bun's native SQLite driver with a similar API to better-sqlite3.
+ * Uses better-sqlite3 which is a synchronous SQLite driver.
  */
 
-import { Database } from 'bun:sqlite';
+import Database from 'better-sqlite3';
 import { existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 
@@ -23,22 +23,22 @@ function ensureDataDirectory(): void {
 }
 
 // Database singleton instance
-let db: Database | null = null;
+let db: Database.Database | null = null;
 
 /**
  * Get the database connection singleton
  * Creates a new connection if one doesn't exist
  */
-export function getDb(): Database {
+export function getDb(): Database.Database {
   if (!db) {
     ensureDataDirectory();
     db = new Database(DB_PATH);
     
     // Enable foreign key constraints
-    db.run('PRAGMA foreign_keys = ON');
+    db.pragma('foreign_keys = ON');
     
     // Enable WAL mode for better performance
-    db.run('PRAGMA journal_mode = WAL');
+    db.pragma('journal_mode = WAL');
     
     console.log(`[DB] Connected to database at ${DB_PATH}`);
   }
@@ -69,15 +69,15 @@ export function exec(sql: string): void {
 /**
  * Prepare a SQL statement for execution
  */
-export function prepare<T = unknown>(sql: string): ReturnType<Database['prepare']> {
+export function prepare(sql: string): Database.Statement {
   const database = getDb();
-  return database.prepare<T>(sql);
+  return database.prepare(sql);
 }
 
 /**
  * Run a SQL statement with parameters
  */
-export function run(sql: string, params: unknown[] = []): ReturnType<Database['run']> {
+export function run(sql: string, params: unknown[] = []): Database.RunResult {
   const stmt = prepare(sql);
   return stmt.run(...params);
 }
@@ -86,7 +86,7 @@ export function run(sql: string, params: unknown[] = []): ReturnType<Database['r
  * Get a single row from a SQL query
  */
 export function get<T = unknown>(sql: string, params: unknown[] = []): T | undefined {
-  const stmt = prepare<T>(sql);
+  const stmt = prepare(sql);
   return stmt.get(...params) as T | undefined;
 }
 
@@ -94,7 +94,7 @@ export function get<T = unknown>(sql: string, params: unknown[] = []): T | undef
  * Get all rows from a SQL query
  */
 export function all<T = unknown>(sql: string, params: unknown[] = []): T[] {
-  const stmt = prepare<T>(sql);
+  const stmt = prepare(sql);
   return stmt.all(...params) as T[];
 }
 
@@ -167,7 +167,7 @@ export function rollback(): void {
 }
 
 // Re-export the Database type for use in other modules
-export type { Database } from 'bun:sqlite';
+export type { Database } from 'better-sqlite3';
 
 // Default export is the getDb function
 export default getDb;

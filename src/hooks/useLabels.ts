@@ -227,6 +227,11 @@ export function useLabels(options: UseLabelsOptions = {}): UseLabelsReturn {
     setSelectedLabelIds(ids);
   }, [setSelectedLabelIds]);
   
+  // Clear selection
+  const handleClearSelection = useCallback(() => {
+    clearLabelSelection();
+  }, [clearLabelSelection]);
+  
   // Get labels by IDs
   const getLabelsByIds = useCallback((ids: string[]): Label[] => {
     return ids.map((id) => getLabelById(id)).filter(Boolean) as Label[];
@@ -242,7 +247,7 @@ export function useLabels(options: UseLabelsOptions = {}): UseLabelsReturn {
     deleteLabel,
     selectLabels,
     toggleLabelSelection,
-    clearSelection,
+    clearSelection: handleClearSelection,
     refetch: fetchLabelsData,
     getLabelById,
     getLabelsByIds,
